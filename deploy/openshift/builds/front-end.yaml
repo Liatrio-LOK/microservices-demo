@@ -1,0 +1,29 @@
+apiVersion: "v1"
+kind: "ImageStream"
+metadata:
+  name: front-end
+---
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: front-end-build
+spec:
+  #triggers:
+  #  - type: "git"
+  #    git:
+  #      uri: https://github.com/Liatrio-LOK/front-end
+  source:                       
+    git:
+      uri: "https://github.com/Liatrio-LOK/front-end"
+      ref: "master"
+    type: Git
+  strategy:                     
+    sourceStrategy:
+      from:
+        kind: "DockerImage"
+        name: "registry.access.redhat.com/rhscl/nodejs-4-rhel7:latest"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: front-end:latest
+      namespace: sock-shop
