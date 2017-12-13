@@ -497,10 +497,15 @@ spec:
     metadata:
       labels:
         name: shipping
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: shipping
     spec:
       containers:
       - name: shipping
-        image: weaveworksdemos/shipping:0.4.8
+        image: 172.30.1.1:5000/sock-shop/shipping:0.4.8
         env:
          - name: ZIPKIN
            value: zipkin.zipkin.svc.cluster.local
