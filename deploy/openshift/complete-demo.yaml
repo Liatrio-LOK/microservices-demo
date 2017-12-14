@@ -484,19 +484,26 @@ spec:
   selector:
     name: rabbitmq
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: DeploymentConfig
 metadata:
   name: shipping
-  labels:
-    name: shipping
   namespace: sock-shop
+  selfLink: /oapi/v1/namespaces/sock-shop/deploymentconfigs/shipping
 spec:
   replicas: 1
-  template:
-    metadata:
-      labels:
-        name: shipping
+  selector:
+    name: shipping
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
   template:
     metadata:
       creationTimestamp: null
@@ -505,7 +512,7 @@ spec:
     spec:
       containers:
       - name: shipping
-        image: 172.30.1.1:5000/sock-shop/shipping:0.4.8
+        image: 172.30.1.1:5000/sock-shop/shipping
         env:
          - name: ZIPKIN
            value: zipkin.zipkin.svc.cluster.local
@@ -524,6 +531,18 @@ spec:
             medium: Memory
       nodeSelector:
         beta.kubernetes.io/os: linux
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - shipping
+      from:
+        kind: ImageStreamTag
+        name: shipping:latest
+        namespace: sock-shop
+    type: ImageChange
 ---
 apiVersion: v1
 kind: Service
