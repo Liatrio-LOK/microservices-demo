@@ -52,4 +52,4 @@ subprocess.check_output("docker push 172.30.1.1:5000/sock-shop/carts-db:latest",
 subprocess.check_output("docker tag mongo:latest 172.30.1.1:5000/sock-shop/orders-db:latest", shell=True)
 subprocess.check_output("docker push 172.30.1.1:5000/sock-shop/orders-db:latest", shell=True)
 subprocess.check_output("docker tag rabbitmq:3.6.8 172.30.1.1:5000/sock-shop/rabbitmq:latest", shell=True)
-subprocess.check_output("docker push 172.30.1.1:5000/sock-shop/orders-db:latest", shell=True)
+subprocess.check_output("docker push 172.30.1.1:5000/sock-shop/rabbitmq:latest", shell=True)
