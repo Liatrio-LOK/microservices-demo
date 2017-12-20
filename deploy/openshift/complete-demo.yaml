@@ -521,7 +521,7 @@ spec:
         ports:
         - containerPort: 80
         securityContext:
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
         volumeMounts:
         - mountPath: /tmp
           name: tmp-volume
