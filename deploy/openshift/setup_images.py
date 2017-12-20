@@ -6,8 +6,8 @@ subprocess.check_output("docker login -u developer -p $(oc whoami -t) 172.30.1.1
 
 
 pull_list = [
-  'mongo:latest'
-  'rabbitmq:3.6.8'
+  'mongo:latest',
+  'rabbitmq:3.6.8',
   'weaveworksdemos/catalogue:0.3.5',
   'weaveworksdemos/user:0.4.4',
   'weaveworksdemos/payment:0.4.3',
