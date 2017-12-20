@@ -226,6 +226,7 @@ objects:
     namespace: sock-shop
     selfLink: /oapi/v1/namespaces/sock-shop/deploymentconfigs/front-end
   spec:
+    replicas: 1
     selector:
       name: front-end
     strategy:
