@@ -5,6 +5,23 @@ subprocess.check_output("eval $(minishift docker-env)", shell=True)
 subprocess.check_output("docker login -u developer -p $(oc whoami -t) 172.30.1.1:5000", shell=True)
 
 
+pull_list = [
+	'mongo:latest'
+	'weaveworksdemos/catalogue:0.3.5'
+	'weaveworksdemos/user:0.4.4'
+	'weaveworksdemos/payment:0.4.3'
+	'weaveworksdemos/front-end:0.3.12'
+	'weaveworksdemos/shipping:0.4.8'
+	'weaveworksdemos/carts:0.4.8'
+	'weaveworksdemos/orders:0.4.7'
+	'weaveworksdemos/queue-master:0.3.1'
+	'weaveworksdemos/catalogue-db:0.3.0'
+	'weaveworksdemos/user-db:0.4.0']
+
+for image in pull_list:
+	command = "docker pull {}".format(image)
+	subprocess.check_output(command1, shell=True)
+
 images = {  "mongo" : "mongo",
 						"weaveworksdemos/catalogue" : "catalogue",
 						"rabbitmq" : "rabbitmq",
