@@ -1,0 +1,746 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: sock-shop-template
+  annotations:
+   description: "A template to deploy sockshop with variable versions"
+objects:
+- apiVersion: v1
+  kind: "DeploymentConfig"
+  metadata:
+    name: carts-db
+    labels:
+      name: carts-db
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "carts-db"
+          from:
+            kind: "ImageStreamTag"
+            name: "carts-db:${CARTS_DB_TAG}"
+    template:
+      metadata:
+        labels:
+          name: carts-db
+      spec:
+        containers:
+        - name: carts-db
+          image: 172.30.1.1:5000/sock-shop/carts-db
+          ports:
+          - name: mongo
+            containerPort: 27017
+          securityContext:
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp-volume
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              medium: Memory
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: carts-db
+    labels:
+      name: carts-db
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 27017
+      targetPort: 27017
+    selector:
+      name: carts-db
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: carts
+    labels:
+      name: carts
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "carts"
+          from:
+            kind: "ImageStreamTag"
+            name: "carts:${CARTS_TAG}"
+    template:
+      metadata:
+        labels:
+          name: carts
+      spec:
+        containers:
+        - name: carts
+          image: 172.30.1.1:5000/sock-shop/carts
+          ports:
+           - containerPort: 80
+          env:
+           - name: ZIPKIN
+             value: zipkin.zipkin.svc.cluster.local
+           - name: JAVA_OPTS
+             value: -Xms64m -Xmx128m -XX:PermSize=32m -XX:MaxPermSize=64m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
+          securityContext:
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp-volume
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              medium: Memory
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: carts
+    labels:
+      name: carts
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 80
+      targetPort: 80
+    selector:
+      name: carts
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: catalogue-db
+    labels:
+      name: catalogue-db
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "catalogue-db"
+          from:
+            kind: "ImageStreamTag"
+            name: "catalogue-db:${CATALOGUE_DB_TAG}"
+    template:
+      metadata:
+        labels:
+          name: catalogue-db
+      spec:
+        containers:
+        - name: catalogue-db
+          image: 172.30.1.1:5000/sock-shop/catalogue-db
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: fake_password
+            - name: MYSQL_DATABASE
+              value: socksdb
+          ports:
+          - name: mysql
+            containerPort: 3306
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: catalogue-db
+    labels:
+      name: catalogue-db
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 3306
+      targetPort: 3306
+    selector:
+      name: catalogue-db
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: catalogue
+    labels:
+      name: catalogue
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "catalogue"
+          from:
+            kind: "ImageStreamTag"
+            name: "catalogue-db:${CATALOGUE_TAG}"
+    template:
+      metadata:
+        labels:
+          name: catalogue
+      spec:
+        containers:
+        - name: catalogue
+          image: 172.30.1.1:5000/sock-shop/catalogue
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: fake_password
+            - name: MYSQL_DATABASE
+              value: socksdb
+          ports:
+          - containerPort: 80
+          securityContext:
+            readOnlyRootFilesystem: false
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: catalogue
+    labels:
+      name: catalogue
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 80
+      targetPort: 80
+    selector:
+      name: catalogue
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: front-end
+    namespace: sock-shop
+    selfLink: /oapi/v1/namespaces/sock-shop/deploymentconfigs/front-end
+  spec:
+    replicas: 1
+    selector:
+      name: front-end
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          name: front-end
+      spec:
+        containers:
+        - image: 172.30.1.1:5000/sock-shop/front-end
+          name: front-end
+          ports:
+          - containerPort: 8079
+            protocol: TCP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - front-end
+        from:
+          kind: ImageStreamTag
+          name: "front-end:${FRONT_END_TAG}"
+          namespace: sock-shop
+      type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: front-end
+    labels:
+      name: front-end
+    namespace: sock-shop
+  spec:
+    type: NodePort
+    ports:
+    - port: 80
+      targetPort: 8079
+      nodePort: 30001
+    selector:
+      name: front-end
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: orders-db
+    labels:
+      name: orders-db
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "orders-db"
+          from:
+            kind: "ImageStreamTag"
+            name: "orders-db:${ORDERS_DB_TAG}"
+    template:
+      metadata:
+        labels:
+          name: orders-db
+      spec:
+        containers:
+        - name: orders-db
+          image: 172.30.1.1:5000/sock-shop/orders-db
+          ports:
+          - name: mongo
+            containerPort: 27017
+          securityContext:
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp-volume
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              medium: Memory
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: orders-db
+    labels:
+      name: orders-db
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 27017
+      targetPort: 27017
+    selector:
+      name: orders-db
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: orders
+    labels:
+      name: orders
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "orders"
+          from:
+            kind: "ImageStreamTag"
+            name: "orders:${ORDERS_TAG}"
+    template:
+      metadata:
+        labels:
+          name: orders
+      spec:
+        containers:
+        - name: orders
+          image: 172.30.1.1:5000/sock-shop/orders
+          env:
+           - name: ZIPKIN
+             value: zipkin.zipkin.svc.cluster.local
+           - name: JAVA_OPTS
+             value: -Xms64m -Xmx128m -XX:PermSize=32m -XX:MaxPermSize=64m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
+          ports:
+          - containerPort: 80
+          securityContext:
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp-volume
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              medium: Memory
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: orders
+    labels:
+      name: orders
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 80
+      targetPort: 80
+    selector:
+      name: orders
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: payment
+    labels:
+      name: payment
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "payment"
+          from:
+            kind: "ImageStreamTag"
+            name: "payment:${PAYMENT_TAG}"
+    template:
+      metadata:
+        labels:
+          name: payment
+      spec:
+        containers:
+        - name: payment
+          image: 172.30.1.1:5000/sock-shop/payment
+          ports:
+          - containerPort: 80
+          securityContext:
+            readOnlyRootFilesystem: true
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: payment
+    labels:
+      name: payment
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 80
+      targetPort: 80
+    selector:
+      name: payment
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: queue-master
+    labels:
+      name: queue-master
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "queue-master"
+          from:
+            kind: "ImageStreamTag"
+            name: "queue-master:${QUEUE_MASTER_TAG}"
+    template:
+      metadata:
+        labels:
+          name: queue-master
+      spec:
+        containers:
+        - name: queue-master
+          image: 172.30.1.1:5000/sock-shop/queue-master
+          ports:
+          - containerPort: 80
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: queue-master
+    labels:
+      name: queue-master
+    annotations:
+      prometheus.io/path: "/prometheus"
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 80
+      targetPort: 80
+    selector:
+      name: queue-master
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: rabbitmq
+    labels:
+      name: rabbitmq
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "rabbitmq"
+          from:
+            kind: "ImageStreamTag"
+            name: "rabbitmq:${RABBITMQ_TAG}"
+    template:
+      metadata:
+        labels:
+          name: rabbitmq
+      spec:
+        containers:
+        - name: rabbitmq
+          image: 172.30.1.1:5000/sock-shop/rabbitmq
+          ports:
+          - containerPort: 5672
+          securityContext:
+            readOnlyRootFilesystem: true
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: rabbitmq
+    labels:
+      name: rabbitmq
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 5672
+      targetPort: 5672
+    selector:
+      name: rabbitmq
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: shipping
+    labels:
+      name: shipping
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "shipping"
+          from:
+            kind: "ImageStreamTag"
+            name: "shipping:${SHIPPING_TAG}"
+    template:
+      metadata:
+        labels:
+          name: shipping
+      spec:
+        containers:
+        - name: shipping
+          image: 172.30.1.1:5000/sock-shop/shipping
+          env:
+           - name: ZIPKIN
+             value: zipkin.zipkin.svc.cluster.local
+           - name: JAVA_OPTS
+             value: -Xms64m -Xmx128m -XX:PermSize=32m -XX:MaxPermSize=64m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
+          ports:
+          - containerPort: 80
+          securityContext:
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp-volume
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              medium: Memory
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: shipping
+    labels:
+      name: shipping
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 80
+      targetPort: 80
+    selector:
+      name: shipping
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: user-db
+    labels:
+      name: user-db
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "user-db"
+          from:
+            kind: "ImageStreamTag"
+            name: "user-db:${USER_DB_TAG}"
+    template:
+      metadata:
+        labels:
+          name: user-db
+      spec:
+        containers:
+        - name: user-db
+          image: 172.30.1.1:5000/sock-shop/user-db
+          ports:
+          - name: mongo
+            containerPort: 27017
+          securityContext:
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmp-volume
+        volumes:
+          - name: tmp-volume
+            emptyDir:
+              medium: Memory
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: user-db
+    labels:
+      name: user-db
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 27017
+      targetPort: 27017
+    selector:
+      name: user-db
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: user
+    labels:
+      name: user
+    namespace: sock-shop
+  spec:
+    replicas: 1
+    triggers:
+      - type: "ImageChange"
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "user"
+          from:
+            kind: "ImageStreamTag"
+            name: "user:${USER_TAG}"
+    template:
+      metadata:
+        labels:
+          name: user
+      spec:
+        containers:
+        - name: user
+          image: 172.30.1.1:5000/sock-shop/user
+          ports:
+          - containerPort: 80
+          env:
+          - name: MONGO_HOST
+            value: user-db:27017
+          securityContext:
+            readOnlyRootFilesystem: true
+        nodeSelector:
+          beta.kubernetes.io/os: linux
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: user
+    labels:
+      name: user
+    namespace: sock-shop
+  spec:
+    ports:
+      # the port that this service should serve on
+    - port: 80
+      targetPort: 80
+    selector:
+      name: user
+parameters:
+- description: tag for carts db
+  name: CARTS_DB_TAG
+  default: latest
+- description: tag for carts
+  name: CARTS_TAG
+  default: latest
+- description: tag for catalogue
+  name: CATALOGUE_TAG
+  default: latest
+- description: tag for catalogue db
+  name: CATALOGUE_DB_TAG
+  default: latest
+- description: tag for front end
+  name: FRONT_END_TAG
+  default: latest
+- description: tag for orders db
+  name: ORDERS_DB_TAG
+  default: latest
+- description: tag for orders
+  name: ORDERS_TAG
+  default: latest
+- description: tag for payment
+  name: PAYMENT_TAG
+  default: latest
+- description: tag for queue master
+  name: QUEUE_MASTER_TAG
+  default: latest
+- description: tag for rabbitmq
+  name: RABBITMQ_TAG
+  default: latest
+- description: tag for shipping
+  name: SHIPPING_TAG
+  default: latest
+- description: tag for user db
+  name: USER_DB_TAG
+  default: latest
+- description: tag for user 
+  name: USER_TAG
+  default: latest
