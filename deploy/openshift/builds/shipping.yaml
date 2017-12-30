@@ -1,0 +1,25 @@
+apiVersion: "v1"
+kind: "ImageStream"
+metadata:
+  name: shipping
+---
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: shipping-build
+spec:
+  source:                       
+    git:
+      uri: "https://github.com/Liatrio-LOK/shipping"
+      ref: "master"
+    type: Git
+  strategy:                     
+    sourceStrategy:
+      from:
+        kind: "DockerImage"
+        name: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:latest"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: shipping:latest
+      namespace: sock-shop
