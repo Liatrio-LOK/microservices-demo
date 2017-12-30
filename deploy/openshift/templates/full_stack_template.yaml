@@ -4,6 +4,7 @@ kind: Template
 metadata:
   name: sock-shop-template
   annotations:
+   tags: "Java"
    description: "A template to deploy sockshop with variable versions"
 objects:
 - apiVersion: v1
@@ -226,7 +227,7 @@ objects:
     namespace: sock-shop
     selfLink: /oapi/v1/namespaces/sock-shop/deploymentconfigs/front-end
   spec:
-    replicas: 1
+    replicas: "${FRONT_END_PODS}"
     selector:
       name: front-end
     strategy:
@@ -705,6 +706,9 @@ objects:
     selector:
       name: user
 parameters:
+- description: number of pods for front-end
+  name: FRONT_END_PODS
+  default: 1
 - description: tag for carts db
   name: CARTS_DB_TAG
   default: latest
