@@ -4,7 +4,7 @@ kind: Template
 metadata:
   name: sock-shop-template
   annotations:
-   description: "A template to deploy sockshop with variable versions"
+   description: "A template to deploy the entire Sock Shop set of microservices with specified versions."
 objects:
 - apiVersion: v1
   kind: "DeploymentConfig"
@@ -12,7 +12,7 @@ objects:
     name: carts-db
     labels:
       name: carts-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -24,6 +24,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "carts-db:${CARTS_DB_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -36,7 +37,7 @@ objects:
           - name: mongo
             containerPort: 27017
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
           volumeMounts:
           - mountPath: /tmp
             name: tmp-volume
@@ -52,7 +53,7 @@ objects:
     name: carts-db
     labels:
       name: carts-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -66,7 +67,7 @@ objects:
     name: carts
     labels:
       name: carts
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -78,6 +79,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "carts:${CARTS_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -110,7 +112,7 @@ objects:
     name: carts
     labels:
       name: carts
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -124,7 +126,7 @@ objects:
     name: catalogue-db
     labels:
       name: catalogue-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -136,6 +138,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "catalogue-db:${CATALOGUE_DB_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -160,7 +163,7 @@ objects:
     name: catalogue-db
     labels:
       name: catalogue-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -174,7 +177,7 @@ objects:
     name: catalogue
     labels:
       name: catalogue
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -186,6 +189,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "catalogue-db:${CATALOGUE_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -211,7 +215,7 @@ objects:
     name: catalogue
     labels:
       name: catalogue
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -223,7 +227,7 @@ objects:
   kind: DeploymentConfig
   metadata:
     name: front-end
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
     selfLink: /oapi/v1/namespaces/sock-shop/deploymentconfigs/front-end
   spec:
     replicas: 1
@@ -284,13 +288,12 @@ objects:
     name: front-end
     labels:
       name: front-end
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     type: NodePort
     ports:
     - port: 80
       targetPort: 8079
-      nodePort: 30001
     selector:
       name: front-end
 - apiVersion: v1
@@ -299,7 +302,7 @@ objects:
     name: orders-db
     labels:
       name: orders-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -311,6 +314,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "orders-db:${ORDERS_DB_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -323,7 +327,7 @@ objects:
           - name: mongo
             containerPort: 27017
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
           volumeMounts:
           - mountPath: /tmp
             name: tmp-volume
@@ -339,7 +343,7 @@ objects:
     name: orders-db
     labels:
       name: orders-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -353,7 +357,7 @@ objects:
     name: orders
     labels:
       name: orders
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -365,6 +369,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "orders:${ORDERS_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -381,7 +386,7 @@ objects:
           ports:
           - containerPort: 80
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
           volumeMounts:
           - mountPath: /tmp
             name: tmp-volume
@@ -397,7 +402,7 @@ objects:
     name: orders
     labels:
       name: orders
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -411,7 +416,7 @@ objects:
     name: payment
     labels:
       name: payment
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -423,6 +428,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "payment:${PAYMENT_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -443,7 +449,7 @@ objects:
     name: payment
     labels:
       name: payment
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -457,7 +463,7 @@ objects:
     name: queue-master
     labels:
       name: queue-master
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -469,6 +475,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "queue-master:${QUEUE_MASTER_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -489,7 +496,7 @@ objects:
       name: queue-master
     annotations:
       prometheus.io/path: "/prometheus"
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -503,7 +510,7 @@ objects:
     name: rabbitmq
     labels:
       name: rabbitmq
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -515,6 +522,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "rabbitmq:${RABBITMQ_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -535,7 +543,7 @@ objects:
     name: rabbitmq
     labels:
       name: rabbitmq
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -549,7 +557,7 @@ objects:
     name: shipping
     labels:
       name: shipping
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -561,6 +569,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "shipping:${SHIPPING_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -577,7 +586,7 @@ objects:
           ports:
           - containerPort: 80
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
           volumeMounts:
           - mountPath: /tmp
             name: tmp-volume
@@ -593,7 +602,7 @@ objects:
     name: shipping
     labels:
       name: shipping
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -607,7 +616,7 @@ objects:
     name: user-db
     labels:
       name: user-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -619,6 +628,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "user-db:${USER_DB_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -631,7 +641,7 @@ objects:
           - name: mongo
             containerPort: 27017
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
           volumeMounts:
           - mountPath: /tmp
             name: tmp-volume
@@ -647,7 +657,7 @@ objects:
     name: user-db
     labels:
       name: user-db
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -661,7 +671,7 @@ objects:
     name: user
     labels:
       name: user
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     replicas: 1
     triggers:
@@ -673,6 +683,7 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "user:${USER_TAG}"
+            namespace: "sock-shop"
     template:
       metadata:
         labels:
@@ -687,7 +698,7 @@ objects:
           - name: MONGO_HOST
             value: user-db:27017
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
         nodeSelector:
           beta.kubernetes.io/os: linux
 - apiVersion: v1
@@ -696,7 +707,7 @@ objects:
     name: user
     labels:
       name: user
-    namespace: sock-shop
+    namespace: "${PROJECT_NAMESPACE}"
   spec:
     ports:
       # the port that this service should serve on
@@ -705,6 +716,9 @@ objects:
     selector:
       name: user
 parameters:
+- description: project namespace
+  name: PROJECT_NAMESPACE
+  required: true
 - description: tag for carts db
   name: CARTS_DB_TAG
   default: latest
