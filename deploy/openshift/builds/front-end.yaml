@@ -6,7 +6,7 @@ metadata:
 apiVersion: v1
 kind: BuildConfig
 metadata:
-  name: front-end-build
+  name: front-end
 spec:
   #triggers:
   #  - type: "git"

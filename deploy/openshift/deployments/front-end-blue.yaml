@@ -24,7 +24,7 @@ spec:
         name: front-end-blue
     spec:
       containers:
-      - image: 172.30.1.1:5000/sock-shop/front-end-blue
+      - image: 172.30.1.1:5000/sock-shop/front-end
         imagePullPolicy: IfNotPresent
         name: front-end
         ports:
@@ -54,6 +54,6 @@ spec:
       - front-end
       from:
         kind: ImageStreamTag
-        name: front-end-blue:latest
+        name: front-end:latest
         namespace: sock-shop
     type: ImageChange
