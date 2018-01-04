@@ -2,7 +2,7 @@ apiVersion: v1
 kind: DeploymentConfig
 metadata:
   name: front-end-blue
-  namespace: sock-shop
+  namespace: sock-shop-prod
 spec:
   replicas: 1
   selector:
@@ -24,7 +24,7 @@ spec:
         name: front-end-blue
     spec:
       containers:
-      - image: 172.30.1.1:5000/sock-shop/front-end
+      - image: 172.30.1.1:5000/sock-shop-dev/front-end
         imagePullPolicy: IfNotPresent
         name: front-end
         ports:
@@ -55,5 +55,5 @@ spec:
       from:
         kind: ImageStreamTag
         name: front-end:latest
-        namespace: sock-shop
+        namespace: sock-shop-dev
     type: ImageChange

@@ -26,4 +26,4 @@ spec:
     to:
       kind: ImageStreamTag
       name: front-end:latest
-      namespace: sock-shop
+      namespace: sock-shop-dev

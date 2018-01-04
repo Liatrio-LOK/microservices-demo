@@ -4,12 +4,12 @@ metadata:
   name: front-end-blue
   labels:
     name: front-end-blue
-  namespace: sock-shop
+  namespace: sock-shop-prod
 spec:
   type: NodePort
   ports:
   - port: 80
     targetPort: 8079
-    nodePort: 30002
+    nodePort: 30003
   selector:
     name: front-end-blue
