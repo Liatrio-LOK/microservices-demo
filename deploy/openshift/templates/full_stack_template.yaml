@@ -185,7 +185,7 @@ objects:
             - "catalogue"
           from:
             kind: "ImageStreamTag"
-            name: "catalogue-db:${CATALOGUE_TAG}"
+            name: "catalogue:${CATALOGUE_TAG}"
     template:
       metadata:
         labels:
@@ -194,11 +194,6 @@ objects:
         containers:
         - name: catalogue
           image: 172.30.1.1:5000/sock-shop/catalogue
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: fake_password
-            - name: MYSQL_DATABASE
-              value: socksdb
           ports:
           - containerPort: 80
           securityContext:
