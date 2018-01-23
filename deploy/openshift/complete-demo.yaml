@@ -416,7 +416,7 @@ spec:
         ports:
         - containerPort: 5672
         securityContext:
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
       nodeSelector:
         beta.kubernetes.io/os: linux
 ---
