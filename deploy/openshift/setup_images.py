@@ -2,7 +2,7 @@ import subprocess
 
 subprocess.check_output("eval $(minishift docker-env)", shell=True)
 
-subprocess.check_output("docker login -u developer -p $(oc whoami -t) 172.30.1.1:5000", shell=True)
+subprocess.check_output("docker login -u $(whoami) -p $(oc whoami -t) 172.30.1.1:5000", shell=True)
 
 print("Pulling images, this may take a while. Feel free to go grab a coffee")
 

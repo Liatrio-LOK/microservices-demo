@@ -188,7 +188,7 @@ objects:
             - "catalogue"
           from:
             kind: "ImageStreamTag"
-            name: "catalogue-db:${CATALOGUE_TAG}"
+            name: "catalogue:${CATALOGUE_TAG}"
             namespace: "sock-shop"
     template:
       metadata:
