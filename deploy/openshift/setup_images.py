@@ -1,6 +1,6 @@
-import subprocess
+#!/usr/bin/python
 
-subprocess.check_output("eval $(minishift docker-env)", shell=True)
+import subprocess
 
 subprocess.check_output("docker login -u $(oc whoami) -p $(oc whoami -t) 172.30.1.1:5000", shell=True)
 
