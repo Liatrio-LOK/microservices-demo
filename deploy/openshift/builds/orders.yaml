@@ -1,0 +1,26 @@
+apiVersion: "v1"
+kind: "ImageStream"
+metadata:
+  name: orders
+---
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: orders-build
+spec:
+  source:
+    git:
+      uri: "https://github.com/Liatrio-LOK/orders"
+      ref: "master"
+    type: Git
+  strategy:
+    sourceStrategy:
+      from:
+        kind: "DockerImage"
+        name: "registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: orders:latest
+      namespace: sock-shop
+
