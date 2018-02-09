@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: front-end-pipeline
+  labels:
+    name: front-end-pipeline
+spec:
+  source:
+    git:
+      uri: "https://github.com/Liatrio-LOK/front-end"
+      ref: "selenium-testing"
+    type: Git
+  strategy:
+    type: "JenkinsPipeline"
+    jenkinsPipelineStrategy:
+      jenkinsfilePath: jenkinsfile_full
