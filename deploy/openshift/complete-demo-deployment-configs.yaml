@@ -488,7 +488,7 @@ spec:
         imagePullPolicy: IfNotPresent
         name: queue-master
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           protocol: TCP
         resources:
           requests:
@@ -545,7 +545,7 @@ spec:
   ports:
     # the port that this service should serve on
   - port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     name: queue-master
 ---
