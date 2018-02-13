@@ -1,5 +1,9 @@
 #!/bin/bash
 
+
+
+oc login -u developer -p dev
+
 # create the jenkins project namespace and app
 oc new-project jenkins
 oc new-app jenkins-persistent --env MINISHIFT_IP=$(minishift ip)
@@ -13,6 +17,8 @@ oc delete project myproject
 # create the selenium hub project
 oc new-project selenium-hub
 oc new-app --docker-image=selenium/hub:latest
+oc delete svc hub
+oc create -f services/hub.yml
 
 # create the selenium node project
 oc new-project selenium-nodes

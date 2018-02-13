@@ -41,7 +41,7 @@ objects:
               cpu: 100m
               memory: 100Mi
           securityContext:
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
         dnsPolicy: ClusterFirst
