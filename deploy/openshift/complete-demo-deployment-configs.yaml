@@ -588,32 +588,52 @@ spec:
   selector:
     name: rabbitmq
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: DeploymentConfig
 metadata:
   name: shipping
-  labels:
-    name: shipping
   namespace: sock-shop
+  selfLink: /oapi/v1/namespaces/sock-shop/deploymentconfigs/shipping
 spec:
   replicas: 1
+  selector:
+    name: shipping
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
   template:
     metadata:
+      creationTimestamp: null
       labels:
         name: shipping
     spec:
       containers:
-      - name: shipping
-        image: weaveworksdemos/shipping:0.4.8
+      - image: 172.30.1.1:5000/sock-shop/shipping
+        imagePullPolicy: IfNotPresent
+        name: shipping
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          readOnlyRootFilesystem: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         env:
          - name: ZIPKIN
            value: zipkin.zipkin.svc.cluster.local
          - name: JAVA_OPTS
            value: -Xms64m -Xmx128m -XX:PermSize=32m -XX:MaxPermSize=64m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom
-        ports:
-        - containerPort: 80
-        securityContext:
-          readOnlyRootFilesystem: false
         volumeMounts:
         - mountPath: /tmp
           name: tmp-volume
@@ -621,8 +641,39 @@ spec:
         - name: tmp-volume
           emptyDir:
             medium: Memory
+      dnsPolicy: ClusterFirst
       nodeSelector:
         beta.kubernetes.io/os: linux
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - shipping
+      from:
+        kind: ImageStreamTag
+        name: shipping:latest
+        namespace: sock-shop
+    type: ImageChange
+status:
+  availableReplicas: 1
+  conditions:
+  details:
+    causes:
+    - imageTrigger:
+        from:
+          kind: ImageStreamTag
+          name: shipping:latest
+          namespace: sock-shop
+      type: ImageChange
+    message: image change
+  readyReplicas: 1
+  replicas: 1
 ---
 apiVersion: v1
 kind: Service
@@ -635,7 +686,7 @@ spec:
   ports:
     # the port that this service should serve on
   - port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     name: shipping
 ---
